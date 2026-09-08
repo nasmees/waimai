@@ -1236,11 +1236,11 @@ function healthView(d) {
     <div class="card"><h3>4. การออมและเงินสำรอง</h3><div class="fields two">
       ${moneyField("monthlySave","ออมต่อเดือน","จำนวนที่กันออมจริงทุกเดือน",d.monthlySave||"")}
       ${moneyField("savings","ยอดเงินสำรองที่มีอยู่","เงินฝาก / บัญชีฉุกเฉินที่ถอนได้",d.savings||"")}
-    ${moneyField("assets","ข้อสินทรัพท์ที่ถืออยู่","หุ้นส่วน หลักทรัพย์รับจำนำ ที่ดิน บ้าน หรือสินทรัพท์อื่น ๆ ที่มีคุณค่า — ชั้นรักษาความปลอดภัยเพิ่มเติม",d.assets||"")}</div></div>
+    ${moneyField("assets","สินทรัพท์ที่ถืออยู่","หุ้นส่วน หลักทรัพย์รับจำนำ ที่ดิน บ้าน หรือสินทรัพท์อื่น ๆ ที่มีค่า ",d.assets||"")}</div></div>
     <div class="card"><h3>5. วินัยและความคุ้มครอง</h3><div class="fields">
       ${scoreField("payOnTime","ชำระบิลและหนี้ตรงเวลา",d.payOnTime)}
       ${scoreField("trackSpend","จดหรือรู้รายรับรายจ่าย",d.trackSpend)}
-      ${scoreField("hasProtect","มีคุ้มครองที่จำเป็น (ประกัน/สวัสดิการ)",d.hasProtect)}
+      ${scoreField("hasProtect","การคุ้มครอง (ประกัน/สวัสดิการ)",d.hasProtect)}
       ${scoreField("hasGoal","มีเป้าการเงินชัดเจน",d.hasGoal)}
     </div></div>
     <div class="actions">
@@ -1353,7 +1353,7 @@ function selfView(d) {
       ${moneyField("housing","ผ่อนบ้าน / ที่อยู่อาศัย","",d.housing||"")}
       ${moneyField("vehicle","ผ่อนรถ","",d.vehicle||"")}
       ${moneyField("otherDebt","หนี้อื่น (สหกรณ์ ธนาคาร)","รวมงวดต่อเดือน",d.otherDebt||"")}
-      ${moneyField("creditCard","ยอดค้างบัตรเครดิต","คิดภาระ 10% ของยอดค้าง",d.creditCard||"")}
+      ${moneyField("creditCard","ยอดค้างบัตรต่างๆ","คิดภาระ 10% ของยอดค้าง",d.creditCard||"")}
     </div></div>
     <div class="card"><h3>3. วงเงินที่อยากกู้ (ถ้ามี)</h3><div class="fields two">
       ${moneyField("wantLoan","วงเงินที่ต้องการ","ใส่ 0 ถ้าดูแค่สถานะปัจจุบัน",d.wantLoan||"")}
