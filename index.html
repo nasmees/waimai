@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
@@ -24,6 +24,7 @@
       --primary-glow: rgba(91,45,158,.45);
       --gold: #d4a017;
       --safe: #0d9b6a;
+      --health: #0e7490;
       --caution: #d97706;
       --risk: #dc2626;
       --fg: #1a1228;
@@ -170,6 +171,9 @@
     .hero.learn {
       background: linear-gradient(135deg, rgba(212,160,23,.9), rgba(140,100,10,.92));
     }
+    .hero.health {
+      background: linear-gradient(135deg, rgba(14,116,144,.88), rgba(8,70,90,.92));
+    }
     .hero h2 { font-size: 1.15rem; margin-bottom: 6px; }
     .hero p { font-size: .86rem; opacity: .93; }
 
@@ -193,6 +197,7 @@
     }
     .role-badge.member { color: var(--safe); }
     .role-badge.staff { color: var(--primary); }
+    .role-badge.health { color: var(--health); }
     .role-card h3, .tool-card h3 { font-size: 1.02rem; margin: 0 0 6px; color: var(--fg); }
     .role-card p, .tool-card p { font-size: .82rem; color: var(--muted); margin: 0; line-height: 1.4; }
     .tool-card { display: flex; gap: 12px; align-items: center; padding: 14px; }
@@ -209,6 +214,7 @@
     .tool-mark.p3 { color: var(--caution); }
     .tool-mark.p5 { color: var(--risk); }
     .tool-mark.learn { color: #8a6800; }
+    .tool-mark.health { color: var(--health); }
     .tool-card .chev { margin-left: auto; color: var(--muted); font-size: 1.2rem; opacity: .4; }
 
     .fields { display: grid; gap: 12px; }
@@ -278,6 +284,12 @@
       background: linear-gradient(145deg, #12b07a, #0a7a55);
       color: #fff;
       box-shadow: 0 6px 20px rgba(13,155,106,.3);
+      border: 1px solid rgba(255,255,255,.2);
+    }
+    .btn-health {
+      background: linear-gradient(145deg, #14a3c4, #0e7490);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(14,116,144,.3);
       border: 1px solid rgba(255,255,255,.2);
     }
 
@@ -495,6 +507,7 @@
     .role-card .ico-wrap .ico { width: 24px; height: 24px; }
     .role-card.member-tone .ico-wrap { color: var(--safe); }
     .role-card.staff-tone .ico-wrap { color: var(--primary); }
+    .role-card.health-tone .ico-wrap { color: var(--health); }
     /* Buttons & chrome */
     .btn .ico { width: 18px; height: 18px; margin-right: 6px; flex-shrink: 0; }
     .back-link .ico { width: 18px; height: 18px; margin-right: 4px; }
@@ -587,6 +600,8 @@ const I = {
   compare: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v18M16 3v18M3 8h6M15 16h6"/></svg>`,
   coin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c.5-1 1.5-1.5 2.5-1.5s2 .7 2 2c0 2-4 1.5-4 3.5 0 1 .8 2 2.5 2s2-.5 2.5-1.5"/></svg>`,
   quiz: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.6 12 20l-7.5-7.4C2.5 10.5 3.2 6.5 7 5.6c2-.5 3.8.4 5 2 1.2-1.6 3-2.5 5-2 3.8.9 4.5 4.9 2.5 7z"/></svg>`,
+  pulse: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-7 4 14 2.5-7H21"/></svg>`,
   chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
 };
 function ico(name, cls="") {
@@ -802,6 +817,167 @@ const COST_EMPTY = {
   principal:100000, months:36, profitRate:6, method:"flat"
 };
 const QUIZ_EMPTY = { answers:{} };
+const HEALTH_EMPTY = {
+  salary:0, otherIncome:0, living:0,
+  housing:0, vehicle:0, otherDebt:0, creditCard:0,
+  monthlySave:0, savings:0, assets:0,
+  payOnTime:3, trackSpend:3, hasProtect:3, hasGoal:3
+};
+
+function calcHealth(d) {
+  const income = n(d.salary) + n(d.otherIncome);
+  const living = n(d.living);
+  const debtPay = n(d.housing) + n(d.vehicle) + n(d.otherDebt) + n(d.creditCard) * 0.1;
+  const save = n(d.monthlySave);
+  const savings = n(d.savings);
+  const totalOut = living + debtPay;
+  const surplus = income - totalOut;
+  const surplusAfterSave = surplus - save;
+  const surplusPct = income > 0 ? (surplus / income) * 100 : 0;
+  const saveRate = income > 0 ? (save / income) * 100 : 0;
+  const spendRate = income > 0 ? (living / income) * 100 : 0;
+  const dti = income > 0 ? (debtPay / income) * 100 : 0;
+  const monthlyNeed = living + debtPay;
+  const emergencyMonths = monthlyNeed > 0 ? savings / monthlyNeed : (savings > 0 ? 6 : 0);
+
+  let cashPts = 0;
+  if (income > 0) {
+    if (surplusPct >= 20) cashPts = 16;
+    else if (surplusPct >= 10) cashPts = 11;
+    else if (surplusPct >= 0) cashPts = 6;
+    else if (surplusPct >= -10) cashPts = 2;
+  }
+  let savePts = 0;
+  if (income > 0) {
+    if (saveRate >= 20) savePts = 16;
+    else if (saveRate >= 10) savePts = 11;
+    else if (saveRate >= 5) savePts = 6;
+    else if (saveRate > 0) savePts = 3;
+  }
+  let emPts = 0;
+if (emergencyMonths >= 6) emPts = 16;
+    else if (emergencyMonths >= 3) emPts = 12;
+    else if (emergencyMonths >= 1) emPts = 8;
+    else if (emergencyMonths > 0) emPts = 4;
+  let debtPts = 0;
+  if (income > 0) {
+    if (dti < 20) debtPts = 16;
+    else if (dti < 36) debtPts = 12;
+    else if (dti < 50) debtPts = 6;
+    else debtPts = 1;
+  }
+  const habit = avg([n(d.payOnTime), n(d.trackSpend), n(d.hasProtect), n(d.hasGoal)]);
+  const habitPts = Math.round((habit / 5) * 16);
+  // สินทรัพท์ (ข้อสินทรัพท์ที่ถืออยู่) — ชั้นรักษาความปลอดภัยเพิ่ม
+  const assets = n(d.assets);
+  let assetPts = 0;
+  if (income > 0) {
+    const assetRatio = (assets / (monthlyNeed || 1));
+    if (assetRatio >= 12) assetPts = 20;
+    else if (assetRatio >= 6) assetPts = 16;
+    else if (assetRatio >= 3) assetPts = 12;
+    else if (assetRatio >= 1) assetPts = 8;
+    else if (assets > 0) assetPts = 4;
+  } else if (assets > 0) assetPts = 8;
+  const score = Math.round(cashPts + savePts + emPts + debtPts + habitPts + assetPts);
+
+  let statusKey = "high", statusTitle = "สุขภาพการเงินเสี่ยง", statusDesc = "กระแสเงินหรือหนี้อาจตึง ควรปรับแผนโดยเร็ว";
+  if (score >= 80) {
+    statusKey = "excellent"; statusTitle = "สุขภาพการเงินแข็งแรง";
+    statusDesc = "ภาพรวมดี ควรรักษาวินัยและต่อยอดเป้าระยะยาว";
+  } else if (score >= 65) {
+    statusKey = "good"; statusTitle = "สุขภาพการเงินค่อนข้างดี";
+    statusDesc = "พื้นฐานใช้ได้ มีจุดที่เสริมแล้วจะมั่นคงขึ้น";
+  } else if (score >= 50) {
+    statusKey = "medium"; statusTitle = "สุขภาพการเงินควรปรับ";
+    statusDesc = "ยังเดินต่อได้ แต่ควรปรับการใช้จ่าย หนี้ หรือเงินสำรอง";
+  }
+
+const pillars = [
+    { key: "cash", name: "กระแสเงินสด", pts: cashPts, max: 16 },
+    { key: "save", name: "การออม", pts: savePts, max: 16 },
+    { key: "emergency", name: "เงินสำรองฉุกเฉิน", pts: emPts, max: 16 },
+    { key: "debt", name: "ภาระหนี้", pts: debtPts, max: 16 },
+    { key: "habit", name: "วินัยและคุ้มครอง", pts: habitPts, max: 16 },
+    { key: "assets", name: "ข้อสินทรัพท์", pts: assetPts, max: 20 },
+  ];
+  const weakest = [...pillars].sort((a, b) => a.pts - b.pts)[0];
+
+  return {
+    income, living, debtPay, totalOut, surplus, surplusAfterSave, surplusPct,
+    save, savings, assets, saveRate, spendRate, dti, emergencyMonths, monthlyNeed,
+    cashPts, savePts, emPts, debtPts, habitPts, assetPts, habit, pillars, weakest,
+    score, statusKey, statusTitle, statusDesc
+  };
+}
+
+function healthAdvice(r) {
+  const tips = [];
+  const finance = [];
+  const next = [];
+  if (r.surplus < 0) {
+    tips.push("รายจ่ายรวมสูงกว่ารายได้ ควรลดค่าใช้จ่ายที่ไม่จำเป็นหรือหาทางเพิ่มรายได้ก่อน");
+  } else if (r.surplusPct < 10) {
+    tips.push("เงินเหลือหลังจ่ายน้อยกว่า 10% ของรายได้ งบเดือนค่อนข้างตึง");
+  } else if (r.surplusPct >= 20) {
+    tips.push("กระแสเงินสดดี มีเงินเหลือหลังจ่ายราว " + r.surplusPct.toFixed(0) + "% ของรายได้");
+  } else {
+    tips.push("มีเงินเหลือใช้ได้ แต่ยังไม่หนา ควรกันออมทันทีเมื่อเงินเข้า");
+  }
+  if (r.saveRate < 10) {
+    tips.push("อัตราออมต่ำกว่า 10% ลองเริ่มจากกัน 10% ของรายได้เป็นขั้นแรก");
+  } else if (r.saveRate >= 20) {
+    tips.push("อัตราออมอยู่ในเกณฑ์ดีตามแนว 50/30/20");
+  } else {
+    tips.push("มีการออมแล้ว ถ้าเพิ่มเป็น 15–20% ของรายได้จะมั่นคงขึ้น");
+  }
+  if (r.emergencyMonths < 3) {
+    tips.push("เงินสำรองฉุกเฉินยังไม่ถึง 3 เดือนของรายจ่าย ควรสะสมก่อนใช้เงินก้อนอื่น");
+  } else if (r.emergencyMonths >= 6) {
+    tips.push("เงินสำรองครอบคลุมอย่างน้อย 6 เดือน เป็นเกณฑ์ที่มั่นคง");
+  } else {
+    tips.push("มีสำรองประมาณ " + r.emergencyMonths.toFixed(1) + " เดือน เป้าถัดไปคือ 6 เดือน");
+  }
+  if (r.assets > 0) {
+    const assetRatio = r.monthlyNeed > 0 ? (r.assets / r.monthlyNeed) : 0;
+    if (assetRatio >= 6) tips.push("มีข้อสินทรัพท์ที่ถืออยู่ประมาณ " + assetRatio.toFixed(1) + " เท่าของรายจ่าย — ชั้นรักษาความปลอดภัยที่ดี");
+    else if (assetRatio >= 1) tips.push("มีข้อสินทรัพท์ที่ถืออยู่ประมาณ " + assetRatio.toFixed(1) + " เท่าของรายจ่าย ช่วยลดความเสี่ยงฉุกเฉิน");
+    else tips.push("ข้อสินทรัพท์ที่มีอยู่ค่อนข้างน้อย ควรสะสมเพิ่มเป็นชั้นรักษาความปลอดภัย");
+  } else {
+    tips.push("ยังไม่มีข้อสินทรัพท์ที่ถืออยู่ ลองพิจารณาสะสมสินทรัพท์หรือหุ้นส่วนเพิ่มเป็นชั้นรักษาความปลอดภัย");
+  }
+  if (r.dti >= 50) {
+    tips.push("ภาระหนี้สูง (DTI ≥ 50%) ความเสี่ยงทางการเงินสูง ควรงดภาระใหม่");
+  } else if (r.dti >= 36) {
+    tips.push("ภาระหนี้อยู่ระดับกลาง หลีกเลี่ยงกู้เพิ่มจนกว่า DTI จะต่ำกว่า 36%");
+  } else if (r.dti < 20 && r.debtPay === 0) {
+    tips.push("ยังไม่มีภาระผ่อน — จุดแข็งที่ควรรักษา");
+  } else {
+    tips.push("ภาระหนี้อยู่ในกรอบที่จัดการได้ รักษาวินัยการชำระตรงเวลา");
+  }
+
+  finance.push("ใช้หลักแบ่งรายได้คร่าว ๆ: จำเป็นไม่เกิน 50% · ใช้ตามต้องการไม่เกิน 30% · ออมอย่างน้อย 20%");
+  finance.push("เงินสำรองฉุกเฉินแนะนำ 3–6 เท่าของรายจ่ายต่อเดือน เก็บในบัญชีที่ถอนได้เมื่อจำเป็น");
+  finance.push("จ่ายหนี้ตรงเวลาและเกินยอดขั้นต่ำของบัตรเครดิต เพื่อไม่ให้ยอดค้างพอก");
+  finance.push("จดรายรับรายจ่ายอย่างน้อย 1 เดือน จะเห็นรูรั่วได้ชัด");
+  if (r.habit < 3.5) {
+    finance.push("เสริมวินัย: ตั้งเป้าการเงินสั้น ๆ (เช่น ออมฉุกเฉิน) และทบทวนทุกเดือน");
+  }
+  if (n(r.habit) >= 0 && r.weakest) {
+    finance.push("จุดที่คะแนนต่ำสุดคือ “" + r.weakest.name + "” — โฟกัสตรงนี้ก่อนจะได้ผลเร็วสุด");
+  }
+
+  if (r.surplus < 0) next.push("ลิสต์รายจ่าย 30 วัน แล้วตัดรายการที่ไม่จำเป็นออกก่อน");
+  else next.push("กันเงินออมทันทีที่เงินเข้า (pay yourself first) แม้เริ่มจากจำนวนเล็ก");
+  if (r.emergencyMonths < 3) next.push("ตั้งเป้าสำรองฉุกเฉินให้ครบ 3 เดือนของรายจ่ายก่อนเป้าหมายอื่น");
+  if (r.dti >= 36) next.push("งดกู้เพิ่ม และเร่งลดหนี้ดอกสูง เช่น บัตรเครดิต");
+    if (r.weakest && r.weakest.key === "assets") next.push("โฟกัสสะสมข้อสินทรัพท์ หรือเพิ่มหุ้นส่วนเพื่อสร้างชั้นรักษาความปลอดภัย");
+next.push("ทบทวนงบเดือนละครั้ง แล้วประเมินสุขภาพการเงินซ้ำ");
+  if (r.score >= 65) next.push("ถ้าคิดจะกู้ ให้ใช้เครื่องมือ「ประเมินก่อนยื่นกู้」เพื่อดูความพร้อม");
+  else next.push("ปรับสุขภาพการเงินให้ดีขึ้นก่อนพิจารณาภาระผ่อนใหม่");
+
+  return { tips, finance, next };
+}
 
 function incomeOf(d) {
   return n(d.salary) + n(d.otherIncome);
@@ -1008,9 +1184,15 @@ function calcQuiz(d) {
 
 function homeView() {
   return `<div class="hero"><h2>ยินดีต้อนรับ</h2>
-    <p>เลือกประเภทการใช้งาน แยกโหมดสำหรับประชาชนทั่วไป และผู้วิเคราะห์ในสถาบันการเงิน</p></div>
+    <p>เริ่มจากประเมินสุขภาพการเงินส่วนบุคคล หรือเลือกโหมดก่อนยื่นกู้ และเครื่องมือสำหรับสถาบัน</p></div>
     <div class="section-title">เลือกประเภทผู้ใช้</div>
     <div class="role-grid">
+      <button class="role-card health-tone" data-go="health" type="button">
+        <div class="ico-wrap">${ico("heart")}</div>
+        <span class="role-badge health">สำหรับทุกคน</span>
+        <h3>ประเมินสุขภาพการเงิน</h3>
+        <p>เช็ครายรับ รายจ่าย การออม เงินสำรอง และภาระหนี้ส่วนบุคคล</p>
+      </button>
       <button class="role-card member-tone" data-go="member" type="button">
         <div class="ico-wrap">${ico("people")}</div>
         <span class="role-badge member">สำหรับทั่วไป</span>
@@ -1024,6 +1206,7 @@ function homeView() {
         <p>DTI · 7C · 3P · 5P สำหรับผู้วิเคราะห์ในสถาบันการเงิน</p>
       </button>
     </div>
+    <p class="page-note">สุขภาพการเงินเป็นภาพรวมการใช้ชีวิต ไม่ใช่การอนุมัติสินเชื่อ · ข้อมูลเก็บในเครื่องนี้เท่านั้น</p>
     <div class="section-title">ความรู้เพิ่มเติม</div>
     <div class="tool-grid">
       <button class="tool-card" data-go="learn" type="button">
@@ -1031,6 +1214,75 @@ function homeView() {
         <div><h3>ความรู้ทางการเงิน</h3><p>DTI · เตรียมตัวก่อนกู้ · เคล็ดลับลดหนี้</p></div>
         <span class="chev">${ico("chevron")}</span>
       </button>
+    </div>`;
+}
+function healthView(d) {
+  return `<button class="back-link" data-go="home" type="button">${ico("back")} กลับหน้าแรก</button>
+    <div class="hero health"><h2>ประเมินสุขภาพการเงินส่วนบุคคล</h2>
+      <p>กรอกรายรับ รายจ่าย การออม และหนี้ แล้วดูคะแนนสุขภาพการเงินจาก 100</p></div>
+    <div class="card"><h3>1. รายได้ต่อเดือน</h3><div class="fields two">
+      ${moneyField("salary","เงินเดือน / รายได้หลัก","หลังหักหรือก่อนหักก็ได้ แต่ใช้ตัวเลขเดียวกันตลอด",d.salary||"")}
+      ${moneyField("otherIncome","รายได้อื่น","งานพิเศษ ค่าล่วงเวลา เงินช่วยเหลือ",d.otherIncome||"")}
+    </div></div>
+    <div class="card"><h3>2. ค่าใช้จ่ายครองชีพ</h3>
+      ${moneyField("living","รายจ่ายจำเป็นต่อเดือน","อาหาร ที่พัก ค่าเดินทาง ค่าน้ำไฟ ไม่รวมยอดผ่อนหนี้",d.living||"")}
+    </div>
+    <div class="card"><h3>3. หนี้ที่ผ่อนอยู่</h3><div class="fields two">
+      ${moneyField("housing","ผ่อนบ้าน / ที่อยู่อาศัย","",d.housing||"")}
+      ${moneyField("vehicle","ผ่อนรถ","",d.vehicle||"")}
+      ${moneyField("otherDebt","หนี้อื่น","สหกรณ์ ธนาคาร เงินกู้นอกระบบ รวมงวดต่อเดือน",d.otherDebt||"")}
+      ${moneyField("creditCard","ยอดค้างบัตรเครดิต","คิดภาระ 10% ของยอดค้าง",d.creditCard||"")}
+    </div></div>
+    <div class="card"><h3>4. การออมและเงินสำรอง</h3><div class="fields two">
+      ${moneyField("monthlySave","ออมต่อเดือน","จำนวนที่กันออมจริงทุกเดือน",d.monthlySave||"")}
+      ${moneyField("savings","ยอดเงินสำรองที่มีอยู่","เงินฝาก / บัญชีฉุกเฉินที่ถอนได้",d.savings||"")}
+    ${moneyField("assets","ข้อสินทรัพท์ที่ถืออยู่","หุ้นส่วน หลักทรัพย์รับจำนำ ที่ดิน บ้าน หรือสินทรัพท์อื่น ๆ ที่มีคุณค่า — ชั้นรักษาความปลอดภัยเพิ่มเติม",d.assets||"")}</div></div>
+    <div class="card"><h3>5. วินัยและความคุ้มครอง</h3><div class="fields">
+      ${scoreField("payOnTime","ชำระบิลและหนี้ตรงเวลา",d.payOnTime)}
+      ${scoreField("trackSpend","จดหรือรู้รายรับรายจ่าย",d.trackSpend)}
+      ${scoreField("hasProtect","มีคุ้มครองที่จำเป็น (ประกัน/สวัสดิการ)",d.hasProtect)}
+      ${scoreField("hasGoal","มีเป้าการเงินชัดเจน",d.hasGoal)}
+    </div></div>
+    <div class="actions">
+      <button class="btn btn-health" type="button" data-show="health">${ico("pulse")} ดูผลสุขภาพการเงิน</button>
+      <button class="btn btn-outline" type="button" data-reset="health">${ico("refresh")} ล้างข้อมูล</button>
+    </div>
+    <p class="page-note">เป็นแนวทางเบื้องต้น ไม่ใช่คำแนะนำการลงทุนหรือการอนุมัติสินเชื่อ</p>`;
+}
+function healthResultHtml(r, ready, adv) {
+  if (!ready) return `<div class="banner idle"><div class="label">ยังไม่มีผล</div><div class="big">—</div>
+    <div class="desc">กรอกรายได้ก่อน แล้วกดดูผลสุขภาพการเงิน</div></div>`;
+  const dimBars = r.pillars.map(p => `<div class="score-bar-row"><div class="top"><span>${p.name}</span><b>${p.pts} / ${p.max}</b></div>
+      <div class="score-bar"><i style="width:${(p.pts/p.max)*100}%"></i></div></div>`).join("");
+  const emLabel = r.emergencyMonths >= 6 ? "มั่นคง" : r.emergencyMonths >= 3 ? "พอใช้" : r.emergencyMonths > 0 ? "ยังน้อย" : "ยังไม่มี";
+  return `<div class="banner ${r.statusKey}">
+      <div class="label">${r.statusTitle}</div><div class="big">${r.score}</div>
+      <div class="desc">คะแนนสุขภาพการเงิน จาก 100</div>
+      <div class="bar"><i style="width:${r.score}%"></i></div>
+      <div class="status-pill">${r.statusDesc}</div></div>
+    <div class="chance-box ${r.score>=80?"high":r.score>=50?"mid":"low"}">
+      <h4>จุดที่ควรโฟกัส: ${r.weakest.name}</h4>
+      <p>คะแนนรวม ${r.score}/100 · ด้านที่อ่อนที่สุดคือ ${r.weakest.name} (${r.weakest.pts}/20) ปรับตรงนี้ก่อนจะดึงภาพรวมขึ้นได้เร็วที่สุด</p>
+    </div>
+    <div class="metrics">
+      <div class="metric"><small>รายได้รวม</small><b>${baht(r.income)}</b><small>บาท/เดือน</small></div>
+      <div class="metric"><small>รายจ่าย+หนี้</small><b>${baht(r.totalOut)}</b><small>บาท/เดือน</small></div>
+      <div class="metric"><small>เงินเหลือ</small><b>${baht(r.surplus)}</b><small>${r.surplusPct.toFixed(1)}%</small></div>
+      <div class="metric"><small>อัตราออม</small><b>${r.saveRate.toFixed(1)}%</b><small>${baht(r.save)} บาท/เดือน</small></div>
+      <div class="metric"><small>เงินสำรอง</small><b>${r.emergencyMonths.toFixed(1)}</b><small>เดือน · ${emLabel}</small></div>
+      <div class="metric"><small>DTI</small><b>${r.dti.toFixed(1)}%</b><small>ภาระหนี้ต่อรายได้</small></div>
+      <div class="metric"><small>ข้อสินทรัพท์</small><b>${baht(r.assets)}</b><small>ชั้นรักษาความปลอดภัย</small></div>
+    </div>
+    <div class="card" style="margin:0 0 12px;box-shadow:none"><h3>คะแนนรายด้าน (ด้านละ 20)</h3>${dimBars}</div>
+    <div class="card" style="margin:0 0 12px;box-shadow:none"><h3>บทวิเคราะห์สถานะ</h3>
+      <ul class="advice">${adv.tips.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+    <div class="card" style="margin:0 0 12px;box-shadow:none"><h3>หลักการเงินที่ใช้ได้จริง</h3>
+      <ul class="advice">${adv.finance.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+    <div class="card" style="margin:0 0 12px;box-shadow:none"><h3>สิ่งที่ควรทำต่อไป</h3>
+      <ol class="step-list">${adv.next.map(t=>`<li>${t}</li>`).join("")}</ol></div>
+    <div class="report"><h3>สรุปรายงาน</h3>
+      <p>รายได้ ${baht(r.income)} · รายจ่าย ${baht(r.living)} · หนี้ ${baht(r.debtPay)} · ออม ${baht(r.save)}/เดือน · สำรอง ${r.emergencyMonths.toFixed(1)} เดือน · DTI ${r.dti.toFixed(1)}% · ข้อสินทรัพท์ ${baht(r.assets)} · คะแนนรวม ${r.score}/100 · ${r.statusTitle}</p>
+      <p class="hint" style="margin-top:8px">แนวทางเบื้องต้นสำหรับวางแผนส่วนบุคคล ไม่ใช่คำอนุมัติสินเชื่อหรือคำแนะนำการลงทุน</p>
     </div>`;
 }
 function staffHubView() {
@@ -1132,6 +1384,18 @@ function learnView() {
         · ต่ำกว่า 36% = ดีเยี่ยม · 36–49% = ปานกลาง · 50% ขึ้นไป = สูง<br>
         · เงินเหลือใช้จ่ายควรอย่างน้อย 30% ของรายได้</div>
     </div></details>
+    <details class="learn-card"><summary>สุขภาพการเงินส่วนบุคคลดูจากอะไร?</summary><div class="learn-body">
+      <p>ประเมินจาก 5 ด้าน ด้านละ 20 คะแนน รวม 100</p>
+      <ul>
+        <li>กระแสเงินสด — เหลือเงินหลังจ่ายรายจ่ายและหนี้หรือไม่</li>
+        <li>การออม — กันออมอย่างน้อยราว 10–20% ของรายได้</li>
+        <li>เงินสำรองฉุกเฉิน — เป้า 3–6 เดือนของรายจ่าย</li>
+        <li>ภาระหนี้ — DTI ต่ำกว่า 36% จะสบายขึ้น</li>
+        <li>วินัยและความคุ้มครอง — จ่ายตรงเวลา จดรายจ่าย มีเป้าและคุ้มครองที่จำเป็น</li>
+      </ul>
+      <div class="tip-box"><strong>เกณฑ์คะแนนคร่าว ๆ</strong><br>
+        · 80 ขึ้นไป = แข็งแรง · 65–79 = ค่อนข้างดี · 50–64 = ควรปรับ · ต่ำกว่า 50 = เสี่ยง</div>
+    </div></details>
     <details class="learn-card"><summary>เตรียมตัวก่อนขอสินเชื่อ</summary><div class="learn-body"><ul>
       <li>เช็ค DTI ให้ต่ำกว่า 50% และเงินเหลืออย่างน้อย 30%</li>
       <li>สลิปเงินเดือน 3–6 เดือน</li>
@@ -1152,6 +1416,7 @@ function learnView() {
       <li>Cash flow — กระแสเงินสด</li>
     </ul></div></details>
     <div class="actions">
+      <button class="btn btn-health" data-go="health" type="button">${ico("heart")} ประเมินสุขภาพการเงิน</button>
       <button class="btn btn-safe" data-go="self" type="button">${ico("people")} ประเมินก่อนยื่นกู้</button>
       <button class="btn btn-outline" data-go="staff" type="button">${ico("bank")} เครื่องมือสถาบัน</button>
     </div>`;
@@ -1334,6 +1599,11 @@ function memberHubView() {
     <div class="hero member"><h2>เครื่องมือสำหรับทั่วไป</h2>
       <p>ประเมินกำลังผ่อน วางแผนลดหนี้ เทียบทางเลือก และประมาณต้นทุนในบริบทการเงินอิสลาม</p></div>
     <div class="tool-grid">
+      <button class="tool-card" data-go="health" type="button">
+        <div class="tool-mark health">${ico("heart")}</div>
+        <div><h3>ประเมินสุขภาพการเงิน</h3><p>รายรับ รายจ่าย ออม สำรอง และภาระหนี้ส่วนบุคคล</p></div>
+        <span class="chev">${ico("chevron")}</span>
+      </button>
       <button class="tool-card" data-go="self" type="button">
         <div class="tool-mark c7">${ico("people")}</div>
         <div><h3>ประเมินก่อนยื่นกู้</h3><p>คะแนนความพร้อมและโอกาสได้รับสินเชื่อ</p></div>
@@ -1625,9 +1895,11 @@ const store = {
   compare: load("fatoni-compare-v1", COMPARE_EMPTY),
   cost: load("fatoni-cost-v1", COST_EMPTY),
   quiz: load("fatoni-quiz-v1", QUIZ_EMPTY),
+  health: load("fatoni-health-v1", HEALTH_EMPTY),
 };
 const SUB_TITLES = {
   home: "วิเคราะห์สินเชื่อก่อนกู้",
+  health: "สุขภาพการเงินส่วนบุคคล",
   self: "ประเมินก่อนยื่นกู้",
   member: "เครื่องมือ · ทั่วไป",
   afford: "วงเงิน / งวดที่ไหว",
@@ -1651,7 +1923,11 @@ function closeResultModal() {
   document.body.style.overflow = "";
 }
 function showAnalysis(kind) {
-  if (kind === "self") {
+  if (kind === "health") {
+    const r = calcHealth(store.health);
+    const adv = healthAdvice(r);
+    openResultModal("ผลสุขภาพการเงิน", healthResultHtml(r, r.income > 0, adv));
+  } else if (kind === "self") {
     const r = calcSelf(store.self);
     const adv = selfAdvice(r, store.self);
     openResultModal("ผลการประเมิน", selfResultHtml(r, r.income > 0, adv, store.self));
@@ -1694,6 +1970,7 @@ function setNavActive(view) {
     let active = nav === view;
     if (["dti","c7","p3","p5"].includes(view)) active = nav === "staff";
     if (["member","self","afford","debtplan","compare","cost","quiz"].includes(view)) active = nav === "self";
+    if (view === "health") active = nav === "home";
     btn.classList.toggle("active", active);
   });
   const sub = document.getElementById("headerSub");
@@ -1705,6 +1982,7 @@ function render() {
   setNavActive(store.view);
   const v = store.view;
   if (v === "home") app.innerHTML = homeView();
+  else if (v === "health") app.innerHTML = healthView(store.health);
   else if (v === "member") app.innerHTML = memberHubView();
   else if (v === "self") app.innerHTML = selfView(store.self);
   else if (v === "afford") app.innerHTML = affordView(store.afford);
@@ -1723,7 +2001,7 @@ function render() {
   window.scrollTo(0, 0);
 }
 function currentKey() {
-  return { dti:"dti", c7:"c7", p3:"p3", p5:"p5", self:"self", afford:"afford", debtplan:"debtplan", compare:"compare", cost:"cost", quiz:"quiz" }[store.view] || null;
+  return { dti:"dti", c7:"c7", p3:"p3", p5:"p5", self:"self", afford:"afford", debtplan:"debtplan", compare:"compare", cost:"cost", quiz:"quiz", health:"health" }[store.view] || null;
 }
 function bind() {
   document.querySelectorAll("[data-go]").forEach(btn => {
@@ -1747,6 +2025,7 @@ function bind() {
       else if (key === "compare") save("fatoni-compare-v1", store.compare);
       else if (key === "cost") save("fatoni-cost-v1", store.cost);
       else if (key === "quiz") save("fatoni-quiz-v1", store.quiz);
+      else if (key === "health") save("fatoni-health-v1", store.health);
       else save("fatoni-" + key, store[key]);
     };
     el.addEventListener(el.tagName === "SELECT" ? "change" : "input", handler);
@@ -1773,6 +2052,7 @@ function bind() {
       if (t === "compare") { store.compare = { ...COMPARE_EMPTY }; save("fatoni-compare-v1", store.compare); }
       if (t === "cost") { store.cost = { ...COST_EMPTY }; save("fatoni-cost-v1", store.cost); }
       if (t === "quiz") { store.quiz = { answers:{} }; save("fatoni-quiz-v1", store.quiz); }
+      if (t === "health") { store.health = { ...HEALTH_EMPTY }; save("fatoni-health-v1", store.health); }
       render();
     };
   });
